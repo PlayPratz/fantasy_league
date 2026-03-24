@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-24 20:32:47.926005",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "player",
+  "ipl_team",
+  "overseas",
+  "points",
+  "recent_points"
+ ],
+ "fields": [
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "player",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Player",
+   "options": "Fantasy Player",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ipl_team",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "IPL Team",
+   "options": "MI\nCSK\nGT\nRCB\nSRH\nDC\nKKR\nPBKS\nRR\nLSG",
+   "reqd": 1,
+   "sort_options": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "overseas",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Overseas"
+  },
+  {
+   "fieldname": "points",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Points"
+  },
+  {
+   "fieldname": "recent_points",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Recent Points"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-25 00:50:25.269291",
+ "modified_by": "Administrator",
+ "module": "Fantasy League",
+ "name": "Player in Fantasy Season",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

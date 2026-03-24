@@ -1,0 +1,140 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "prompt",
+ "creation": "2026-03-24 20:28:00.525917",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "setup_tab",
+  "league_name",
+  "season_year",
+  "squad_size",
+  "overseas_limit",
+  "best_of",
+  "section_break_nzqa",
+  "teams",
+  "players_tab",
+  "player_pool",
+  "section_break_lksi",
+  "replacements",
+  "signings_tab",
+  "player_signings"
+ ],
+ "fields": [
+  {
+   "fieldname": "season_year",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Year",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "player_pool",
+   "fieldtype": "Table",
+   "label": "Player Pool",
+   "options": "Player in Fantasy Season"
+  },
+  {
+   "fieldname": "squad_size",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Squad Size",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_nzqa",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "overseas_limit",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Overseas Limit",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "11",
+   "fieldname": "best_of",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Best of",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "teams",
+   "fieldtype": "Table",
+   "label": "Teams",
+   "options": "Team In Fantasy Season"
+  },
+  {
+   "fieldname": "league_name",
+   "fieldtype": "Data",
+   "label": "League Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "player_signings",
+   "fieldtype": "Table",
+   "label": "Player Signings",
+   "options": "Signing in Fantasy Season"
+  },
+  {
+   "fieldname": "signings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Signings"
+  },
+  {
+   "fieldname": "setup_tab",
+   "fieldtype": "Tab Break",
+   "label": "Setup"
+  },
+  {
+   "fieldname": "players_tab",
+   "fieldtype": "Tab Break",
+   "label": "Players"
+  },
+  {
+   "fieldname": "section_break_lksi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "replacements",
+   "fieldtype": "Table",
+   "label": "Replacements",
+   "options": "Replacement in Fantasy Season"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-25 01:24:17.554259",
+ "modified_by": "Administrator",
+ "module": "Fantasy League",
+ "name": "Fantasy Season",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

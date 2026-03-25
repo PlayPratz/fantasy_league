@@ -138,8 +138,6 @@ class FantasySeason(Document):
             t.previous_points = self.best_of_previous_points(players)
             t.purse_spent = sum(p.price for p in players)
 
-            print("Updated for ", t.team)
-
         team_ranks = rank_number_list(list(t.points for t in self.teams))
         team_previous_ranks = rank_number_list(
             list(t.previous_points for t in self.teams)

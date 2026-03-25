@@ -101,7 +101,7 @@ def update_points(season, players):
             "Fantasy Player", p.player, "fantasy_player_id"
         )
         p.points = player_to_point_map[fantasy_player_id]
-        p.recent_points = player_to_recent_point_map[fantasy_player_id]
+        p.previous_points = p.points - player_to_recent_point_map[fantasy_player_id]
 
     fantasy_season.save()
     return f"Updated points for {len(players)} players"

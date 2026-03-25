@@ -11,11 +11,11 @@ class FantasySeason(Document):
         players_sign = frappe.get_all(
             "Signing in Fantasy Season",
             filters={"parent": self.name, "team": team_id},
-            fields=["player", "slot_number", "price"],
+            fields=["player", "slot_number", "type", "price"],
+            order_by="slot_number asc",
         )
 
         players = []
-
         # Get player_name and fantasy_player_id
         for p in players_sign:
             fantasy_player = frappe.get_doc("Fantasy Player", p.player)
@@ -24,15 +24,19 @@ class FantasySeason(Document):
             fp = fantasy_player.as_dict(no_default_fields=True).update(p)
             fp.pop("player")
 
+            player_points = self.single_player_points(player_id)
+            fp.update(player_points)
+
+            # Check for replacements
             replacements = self.all_replacements_for([player_id])
             if len(replacements) > 1:
                 fp["points"] = 0
-                fp["recent_points"] = 0
+                fp["previous_points"] = 0
                 replacement_players = []
                 for r in replacements:
                     player_points = self.single_player_points(r)
                     fp["points"] += player_points["points"]
-                    fp["recent_points"] += player_points["recent_points"]
+                    fp["previous_points"] += player_points["previous_points"]
                     replacement_players.append(
                         {
                             "player_name": frappe.get_value(
@@ -41,20 +45,57 @@ class FantasySeason(Document):
                             **player_points,
                         }
                     )
+                fp["recent_points"] = fp["points"] - fp["previous_points"]
                 fp["replacements"] = replacement_players
-            else:
-                player_points = self.single_player_points(player_id)
-                fp.update(player_points)
 
             players.append(fp)
-        players.sort(key=lambda p: p.slot_number)
+
+        # Calculate ranks
+        ranks = self.rank_points_list(list(p.points for p in players))
+        previous_ranks = self.rank_points_list(list(p.previous_points for p in players))
+        for index, player in enumerate(players):
+            player.rank = ranks[index]
+            player.previous_rank = previous_ranks[index]
+
         return players
+
+        # for rank, player in enumerate(
+        #     sorted(
+        #         slot_to_player_map.items(),
+        #         key=lambda item: item[1].points,
+        #         reverse=True,
+        #     ),
+        #     start=1,
+        # ):
+        #     fp = player[1]
+        #     fp.rank = rank
+
+        # Calculate previous_ranks
+        # for rank, player in enumerate(
+        #     sorted(
+        #         slot_to_player_map.items(),
+        #         key=lambda item: item[1].previous_points,
+        #         reverse=True,
+        #     ),
+        #     start=1,
+        # ):
+        #     fp = player[1]
+        #     fp.previous_rank = rank
+
+        # return list(slot_to_player_map.values())
+
+    def rank_points_list(self, points_list: list) -> list[int]:
+        rank_map = {}
+        for rank, points in enumerate(sorted(points_list, reverse=True), start=1):
+            rank_map[points] = rank
+        ranks = [rank_map[points] for points in points_list]
+        return ranks
 
     def single_player_points(self, player_id):
         return frappe.get_value(
             "Player in Fantasy Season",
             {"parent": self.name, "player": player_id},
-            ["points", "recent_points"],
+            ["overseas", "points", "previous_points", "recent_points"],
             as_dict=True,
         )
 
@@ -70,13 +111,16 @@ class FantasySeason(Document):
         else:
             return player_ids
 
-    def best_of_points(self, point_list):
-        best_points = sorted(point_list, reverse=True)[: self.best_of]
-        return sum(best_points)
+    def best_of_points(self, players):
+        return sum(p.points for p in players if p.rank <= self.best_of)
+
+    def best_of_previous_points(self, players):
+        return sum(
+            p.previous_points for p in players if p.previous_rank <= self.best_of
+        )
 
     def all_teams(self):
         teams = []
-
         for t in self.teams:
             team_id = t.team
             teams.append(
@@ -86,6 +130,7 @@ class FantasySeason(Document):
                         "Fantasy Team", team_id, "team_owner"
                     ),
                     "points": t.points,
+                    "previous_points": t.previous_points,
                     "recent_points": t.recent_points,
                     "highest_points": t.highest_points,
                     "highest_spend": t.highest_spend,
@@ -96,51 +141,23 @@ class FantasySeason(Document):
         return teams
 
     def before_save(self):
+
+        # Update purses and points
+
         for t in self.teams:
             players = self.team_players(t.team)
-            only_points = [p["points"] for p in players]
-            t.points = self.best_of_points(only_points)
-            t.highest_points = max(only_points)
-            t.highest_spend = max(p["price"] for p in players)
 
-            team_previous_points = self.best_of_points(
-                p["points"] - p["recent_points"] for p in players
-            )
-            t.recent_points = t.points - team_previous_points
+            t.points = self.best_of_points(players)
+            t.previous_points = self.best_of_previous_points(players)
+            t.purse_spent = sum(p.price for p in players)
+
             print("Updated for ", t.team)
 
-        # # Update purses and points
-        # purse_spent_map = {}
+        team_ranks = self.rank_points_list(list(t.points for t in self.teams))
+        team_previous_ranks = self.rank_points_list(
+            list(t.previous_points for t in self.teams)
+        )
 
-        # player_to_team_map = {}
-
-        # team_points_map = {}
-        # team_recent_points_map = {}
-
-        # # team_rank_map = {}
-        # # team_previous_rank_map = {}
-
-        # for t in self.teams:
-        #     purse_spent_map[t.team] = 0
-        #     team_points_map[t.team] = 0
-        #     team_recent_points_map[t.team] = 0
-
-        # # Accumulate purse_spent
-        # for s in self.player_signings:
-        #     purse_spent_map[s.team] += s.price
-        #     player_to_team_map[s.player] = s.team
-
-        # # Accumulate points
-        # for p in self.player_pool:
-        #     if p.player in player_to_team_map:
-        #         team = player_to_team_map[p.player]
-        #         team_points_map[team] += p.points
-        #         team_recent_points_map[team] += p.recent_points
-
-        # # Calculate ranks
-
-        # # Update values
-        # for t in self.teams:
-        #     t.purse_spent = purse_spent_map[t.team]
-        #     t.points = team_points_map[t.team]
-        #     t.recent_points = 0  # Todo
+        for index, t in enumerate(self.teams):
+            t.rank = team_ranks[index]
+            t.previous_rank = team_previous_ranks[index]

@@ -18,14 +18,12 @@ class FantasySeason(Document):
         players = []
         # Get player_name and fantasy_player_id
         for p in players_sign:
-            fantasy_player = frappe.get_doc("Fantasy Player", p.player)
-            player_id = fantasy_player.name
-
-            fp = fantasy_player.as_dict(no_default_fields=True).update(p)
-            fp.pop("player")
-
-            player_points = self.single_player_points(player_id)
-            fp.update(player_points)
+            player_id = p.player
+            fp = (
+                self.fantasy_player_wo_id(player_id)
+                .update(p)
+                .update(self.single_player_points(player_id))
+            )
 
             # Check for replacements
             replacements = self.all_replacements_for([player_id])
@@ -38,12 +36,7 @@ class FantasySeason(Document):
                     fp["points"] += player_points["points"]
                     fp["previous_points"] += player_points["previous_points"]
                     replacement_players.append(
-                        {
-                            "player_name": frappe.get_value(
-                                "Fantasy Player", r, "player_name"
-                            ),
-                            **player_points,
-                        }
+                        self.fantasy_player_wo_id(r).update(player_points)
                     )
                 fp["recent_points"] = fp["points"] - fp["previous_points"]
                 fp["replacements"] = replacement_players
@@ -51,53 +44,37 @@ class FantasySeason(Document):
             players.append(fp)
 
         # Calculate ranks
-        ranks = self.rank_points_list(list(p.points for p in players))
-        previous_ranks = self.rank_points_list(list(p.previous_points for p in players))
+        ranks = self.rank_number_list(list(p.points for p in players))
+        previous_ranks = self.rank_number_list(list(p.previous_points for p in players))
+        price_ranks = self.rank_number_list(list(p.price for p in players))
         for index, player in enumerate(players):
             player.rank = ranks[index]
             player.previous_rank = previous_ranks[index]
+            player.price_rank = price_ranks[index]
 
         return players
 
-        # for rank, player in enumerate(
-        #     sorted(
-        #         slot_to_player_map.items(),
-        #         key=lambda item: item[1].points,
-        #         reverse=True,
-        #     ),
-        #     start=1,
-        # ):
-        #     fp = player[1]
-        #     fp.rank = rank
-
-        # Calculate previous_ranks
-        # for rank, player in enumerate(
-        #     sorted(
-        #         slot_to_player_map.items(),
-        #         key=lambda item: item[1].previous_points,
-        #         reverse=True,
-        #     ),
-        #     start=1,
-        # ):
-        #     fp = player[1]
-        #     fp.previous_rank = rank
-
-        # return list(slot_to_player_map.values())
-
-    def rank_points_list(self, points_list: list) -> list[int]:
+    def rank_number_list(self, points_list: list) -> list[int]:
         rank_map = {}
         for rank, points in enumerate(sorted(points_list, reverse=True), start=1):
             rank_map[points] = rank
         ranks = [rank_map[points] for points in points_list]
         return ranks
 
+    def fantasy_player_wo_id(self, player_id) -> dict:
+        fantasy_player = frappe.get_doc("Fantasy Player", player_id)
+        fp = fantasy_player.as_dict(no_default_fields=True)
+        fp.pop("player")
+        return fp
+
     def single_player_points(self, player_id):
-        return frappe.get_value(
+        player = frappe.get_doc(
             "Player in Fantasy Season",
             {"parent": self.name, "player": player_id},
-            ["overseas", "points", "previous_points", "recent_points"],
-            as_dict=True,
         )
+        player_dict = player.as_dict(no_default_fields=True, no_child_table_fields=True)
+        player_dict.pop("player")
+        return player_dict
 
     def all_replacements_for(self, player_ids: list[str]) -> list[str]:
         replacement_id = frappe.get_value(
@@ -132,18 +109,19 @@ class FantasySeason(Document):
                     "points": t.points,
                     "previous_points": t.previous_points,
                     "recent_points": t.recent_points,
-                    "highest_points": t.highest_points,
-                    "highest_spend": t.highest_spend,
                     "players": self.team_players(team_id),
                 }
             )
 
         return teams
 
+    def overview(self):
+        season_dict = self.as_dict(no_default_fields=True)
+        return {**season_dict, "teams": self.all_teams()}
+
     def before_save(self):
 
         # Update purses and points
-
         for t in self.teams:
             players = self.team_players(t.team)
 
@@ -153,8 +131,8 @@ class FantasySeason(Document):
 
             print("Updated for ", t.team)
 
-        team_ranks = self.rank_points_list(list(t.points for t in self.teams))
-        team_previous_ranks = self.rank_points_list(
+        team_ranks = self.rank_number_list(list(t.points for t in self.teams))
+        team_previous_ranks = self.rank_number_list(
             list(t.previous_points for t in self.teams)
         )
 

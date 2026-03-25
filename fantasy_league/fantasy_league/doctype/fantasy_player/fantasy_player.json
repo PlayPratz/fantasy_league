@@ -15,13 +15,15 @@
    "fieldname": "player",
    "fieldtype": "Link",
    "label": "Player",
-   "options": "Player"
+   "options": "Player",
+   "reqd": 1
   },
   {
    "fetch_from": "player.player_name",
    "fieldname": "player_name",
    "fieldtype": "Data",
-   "label": "Player Name"
+   "label": "Player Name",
+   "reqd": 1
   },
   {
    "fieldname": "fantasy_player_id",
@@ -29,13 +31,14 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "IPL Fantasy Player ID",
+   "non_negative": 1,
    "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-25 03:05:48.945835",
+ "modified": "2026-03-25 13:31:20.020869",
  "modified_by": "Administrator",
  "module": "Fantasy League",
  "name": "Fantasy Player",

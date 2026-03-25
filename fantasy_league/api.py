@@ -110,7 +110,7 @@ def update_points(season, players):
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def fantasy_season(season):
     season = frappe.get_doc("Fantasy Season", season)
-    return season
+    return season.overview()
 
 
 @frappe.whitelist()

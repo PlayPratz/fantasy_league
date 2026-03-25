@@ -12,6 +12,7 @@
   "squad_size",
   "overseas_limit",
   "best_of",
+  "commenced",
   "section_break_nzqa",
   "teams",
   "players_tab",
@@ -107,12 +108,18 @@
    "fieldtype": "Table",
    "label": "Replacements",
    "options": "Replacement in Fantasy Season"
+  },
+  {
+   "default": "0",
+   "fieldname": "commenced",
+   "fieldtype": "Check",
+   "label": "Commenced"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-25 01:24:17.554259",
+ "modified": "2026-03-25 18:29:16.737739",
  "modified_by": "Administrator",
  "module": "Fantasy League",
  "name": "Fantasy Season",

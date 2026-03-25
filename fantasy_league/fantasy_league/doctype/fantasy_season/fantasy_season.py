@@ -124,6 +124,7 @@ class FantasySeason(Document):
             "squad_size": self.squad_size,
             "overseas_limit": self.overseas_limit,
             "best_of": self.best_of,
+            "commenced": self.commenced,
             "teams": self.all_teams(),
         }
 

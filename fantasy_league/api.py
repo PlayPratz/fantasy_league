@@ -124,6 +124,7 @@ def fantasy_season_list():
             "squad_size",
             "overseas_limit",
             "best_of",
+            "commenced",
         ],
         order_by="season_year desc",
     )

@@ -113,6 +113,22 @@ def fantasy_season(season):
     return season.overview()
 
 
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def fantasy_season_list():
+    return frappe.get_all(
+        "Fantasy Season",
+        [
+            "name",
+            "league_name",
+            "season_year",
+            "squad_size",
+            "overseas_limit",
+            "best_of",
+        ],
+        order_by="season_year desc",
+    )
+
+
 @frappe.whitelist()
 def test():
     season = frappe.get_doc("Fantasy Season", "LKPL-2025")

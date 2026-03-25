@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from fantasy_league.utils.number_utils import rank_number_list
 
 
 class FantasySeason(Document):
@@ -24,6 +25,7 @@ class FantasySeason(Document):
                 .update(p)
                 .update(self.single_player_points(player_id))
             )
+            fp.pop("player")
 
             # Check for replacements
             replacements = self.all_replacements_for([player_id])
@@ -44,22 +46,19 @@ class FantasySeason(Document):
             players.append(fp)
 
         # Calculate ranks
-        ranks = self.rank_number_list(list(p.points for p in players))
-        previous_ranks = self.rank_number_list(list(p.previous_points for p in players))
-        price_ranks = self.rank_number_list(list(p.price for p in players))
+        ranks = rank_number_list(list(p.points for p in players))
+        previous_ranks = rank_number_list(list(p.previous_points for p in players))
+        price_ranks = rank_number_list(list(p.price for p in players))
         for index, player in enumerate(players):
             player.rank = ranks[index]
             player.previous_rank = previous_ranks[index]
             player.price_rank = price_ranks[index]
+            if player.rank <= self.best_of:
+                player.counted = 1
+            else:
+                player.counted = 0
 
         return players
-
-    def rank_number_list(self, points_list: list) -> list[int]:
-        rank_map = {}
-        for rank, points in enumerate(sorted(points_list, reverse=True), start=1):
-            rank_map[points] = rank
-        ranks = [rank_map[points] for points in points_list]
-        return ranks
 
     def fantasy_player_wo_id(self, player_id) -> dict:
         fantasy_player = frappe.get_doc("Fantasy Player", player_id)
@@ -109,6 +108,9 @@ class FantasySeason(Document):
                     "points": t.points,
                     "previous_points": t.previous_points,
                     "recent_points": t.recent_points,
+                    "rank": t.rank,
+                    "previous_rank": t.previous_rank,
+                    "recent_rank_gain": t.recent_rank_gain,
                     "players": self.team_players(team_id),
                 }
             )
@@ -116,8 +118,14 @@ class FantasySeason(Document):
         return teams
 
     def overview(self):
-        season_dict = self.as_dict(no_default_fields=True)
-        return {**season_dict, "teams": self.all_teams()}
+        return {
+            "league_name": self.league_name,
+            "season_year": self.season_year,
+            "squad_size": self.squad_size,
+            "overseas_limit": self.overseas_limit,
+            "best_of": self.best_of,
+            "teams": self.all_teams(),
+        }
 
     def before_save(self):
 
@@ -131,8 +139,8 @@ class FantasySeason(Document):
 
             print("Updated for ", t.team)
 
-        team_ranks = self.rank_number_list(list(t.points for t in self.teams))
-        team_previous_ranks = self.rank_number_list(
+        team_ranks = rank_number_list(list(t.points for t in self.teams))
+        team_previous_ranks = rank_number_list(
             list(t.previous_points for t in self.teams)
         )
 

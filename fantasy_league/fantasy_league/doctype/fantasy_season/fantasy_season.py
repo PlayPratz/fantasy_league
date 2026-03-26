@@ -134,18 +134,19 @@ class FantasySeason(Document):
             t.points = self.best_of_points(players)
             t.previous_points = self.best_of_previous_points(players)
 
-            t.slots_remaining = self.squad_size
             t.overseas_players = 0
             t.players_retained = 0
+            t.players_bought = 0
             t.purse_spent = 0
 
             for p in players:
                 t.purse_spent += p.price
-                t.slots_remaining -= 1
                 if p.overseas:
                     t.overseas_players += 1
                 if p.type == "Retention":
                     t.players_retained += 1
+                elif p.type == "Auction":
+                    t.players_bought += 1
 
             # Update purse deduction for retention
             try:
@@ -158,6 +159,11 @@ class FantasySeason(Document):
                 frappe.throw(
                     "At least one team has retained more players than allowed!"
                 )
+
+            t.slots_remaining = self.squad_size - t.players_bought - t.players_retained
+            t.purse_remaining = t.purse_total - t.purse_spent
+            t.recent_points = t.points - t.previous_points
+            t.recent_rank_gain = t.rank - t.previous_rank
 
         team_ranks = rank_number_list(list(t.points for t in self.teams))
         team_previous_ranks = rank_number_list(

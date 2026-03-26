@@ -130,7 +130,15 @@ def fantasy_season_list():
     )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["PUT"])
 def test():
-    season = frappe.get_doc("Fantasy Season", "LKPL-2025")
-    return season.all_teams()
+    fantasy_seasons = frappe.get_list(
+        "Fantasy Season",
+        filters={"auto_update_points": 1},
+        fields={"name", "update_points_url"},
+    )
+    for fs in fantasy_seasons:
+        players = frappe.integrations.utils.make_get_request(fs.update_points_url)[
+            "Data"
+        ]["Value"]["Players"]
+        return update_points(fs.name, players)

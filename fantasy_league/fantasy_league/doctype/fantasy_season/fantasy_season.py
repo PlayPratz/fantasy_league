@@ -96,26 +96,22 @@ class FantasySeason(Document):
         )
 
     def all_teams(self):
-        teams = []
-        for t in self.teams:
-            team_id = t.team
-            teams.append(
-                {
-                    "team": team_id,
-                    "team_owner": frappe.get_value(
-                        "Fantasy Team", team_id, "team_owner"
-                    ),
-                    "points": t.points,
-                    "previous_points": t.previous_points,
-                    "recent_points": t.recent_points,
-                    "rank": t.rank,
-                    "previous_rank": t.previous_rank,
-                    "recent_rank_gain": t.recent_rank_gain,
-                    "players": self.team_players(team_id),
-                }
-            )
-
+        teams = [self.single_team(t) for t in self.teams]
         return teams
+
+    def single_team(self, team_in_season: Document):
+        team_id = team_in_season.team
+
+        team_in_season_dict = team_in_season.as_dict(
+            no_child_table_fields=True, no_default_fields=True
+        )
+
+        return {
+            "team": team_id,
+            "team_owner": frappe.get_value("Fantasy Team", team_id, "team_owner"),
+            **team_in_season_dict,
+            "players": self.team_players(team_id),
+        }
 
     def overview(self):
         return {
@@ -128,7 +124,8 @@ class FantasySeason(Document):
             "teams": self.all_teams(),
         }
 
-    def before_save(self):
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)  # call the base save method to refresh values
 
         # Update purses and points
         for t in self.teams:
@@ -136,7 +133,31 @@ class FantasySeason(Document):
 
             t.points = self.best_of_points(players)
             t.previous_points = self.best_of_previous_points(players)
-            t.purse_spent = sum(p.price for p in players)
+
+            t.slots_remaining = self.squad_size
+            t.overseas_players = 0
+            t.players_retained = 0
+            t.purse_spent = 0
+
+            for p in players:
+                t.purse_spent += p.price
+                t.slots_remaining -= 1
+                if p.overseas:
+                    t.overseas_players += 1
+                if p.type == "Retention":
+                    t.players_retained += 1
+
+            # Update purse deduction for retention
+            try:
+                t.purse_spent += next(
+                    slab.purse_deducted
+                    for slab in self.retention_slabs
+                    if slab.num_players_retained == t.players_retained
+                )
+            except StopIteration:
+                frappe.throw(
+                    "At least one team has retained more players than allowed!"
+                )
 
         team_ranks = rank_number_list(list(t.points for t in self.teams))
         team_previous_ranks = rank_number_list(
@@ -146,3 +167,5 @@ class FantasySeason(Document):
         for index, t in enumerate(self.teams):
             t.rank = team_ranks[index]
             t.previous_rank = team_previous_ranks[index]
+
+        super().save(*args, **kwargs)  # call the base save method

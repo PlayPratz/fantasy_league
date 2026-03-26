@@ -16,11 +16,17 @@
   "section_break_nzqa",
   "teams",
   "players_tab",
+  "api_section",
+  "auto_update_points",
+  "update_points_url",
+  "section_break_dxjb",
   "player_pool",
   "section_break_lksi",
   "replacements",
   "signings_tab",
-  "player_signings"
+  "player_signings",
+  "section_break_qlyb",
+  "retention_slabs"
  ],
  "fields": [
   {
@@ -114,12 +120,43 @@
    "fieldname": "commenced",
    "fieldtype": "Check",
    "label": "Commenced"
+  },
+  {
+   "default": "0",
+   "fieldname": "auto_update_points",
+   "fieldtype": "Check",
+   "label": "Auto update points"
+  },
+  {
+   "fieldname": "update_points_url",
+   "fieldtype": "Data",
+   "label": "Update Points URL",
+   "options": "URL"
+  },
+  {
+   "fieldname": "api_section",
+   "fieldtype": "Section Break",
+   "label": "API"
+  },
+  {
+   "fieldname": "section_break_dxjb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_qlyb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "retention_slabs",
+   "fieldtype": "Table",
+   "label": "Retention Slabs",
+   "options": "Retention Slab in Fantasy League"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-25 18:29:16.737739",
+ "modified": "2026-03-26 12:22:22.914414",
  "modified_by": "Administrator",
  "module": "Fantasy League",
  "name": "Fantasy Season",

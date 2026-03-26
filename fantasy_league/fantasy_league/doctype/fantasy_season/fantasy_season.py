@@ -114,6 +114,7 @@ class FantasySeason(Document):
         }
 
     def overview(self):
+        self.refresh_points()
         return {
             "league_name": self.league_name,
             "season_year": self.season_year,
@@ -175,3 +176,41 @@ class FantasySeason(Document):
             t.previous_rank = team_previous_ranks[index]
 
         super().save(*args, **kwargs)  # call the base save method
+
+    def refresh_points(self, skip_time_check=False):
+        if not self.update_points_url:
+            return 0
+
+        import frappe.utils as utils
+        from datetime import datetime
+
+        if (
+            not skip_time_check
+            and utils.add_to_date(self.points_last_updated, minutes=5) > datetime.now()
+        ):
+            return 0
+
+        url = self.update_points_url + str(self.update_points_gameday)
+
+        players = frappe.integrations.utils.make_get_request(url)["Data"]["Value"][
+            "Players"
+        ]
+
+        player_to_point_map = {}
+        player_to_recent_point_map = {}
+
+        for p in players:
+            player_to_point_map[p["Id"]] = p["OverallPoints"]
+            player_to_recent_point_map[p["Id"]] = p["GamedayPoints"]
+
+        for p in self.player_pool:
+            fantasy_player_id = frappe.get_value(
+                "Fantasy Player", p.player, "fantasy_player_id"
+            )
+            p.points = player_to_point_map[fantasy_player_id]
+            p.previous_points = p.points - player_to_recent_point_map[fantasy_player_id]
+
+        self.points_last_updated = datetime.now()
+
+        self.save()
+        return len(players)

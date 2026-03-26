@@ -85,28 +85,6 @@ def create_auction_signings(season, signings):
     return f"Created {len(signings)} auction signings"
 
 
-@frappe.whitelist(methods=["PUT"])
-def update_points(season, players):
-    fantasy_season = frappe.get_doc("Fantasy Season", season)
-
-    player_to_point_map = {}
-    player_to_recent_point_map = {}
-
-    for p in players:
-        player_to_point_map[p["Id"]] = p["OverallPoints"]
-        player_to_recent_point_map[p["Id"]] = p["GamedayPoints"]
-
-    for p in fantasy_season.player_pool:
-        fantasy_player_id = frappe.get_value(
-            "Fantasy Player", p.player, "fantasy_player_id"
-        )
-        p.points = player_to_point_map[fantasy_player_id]
-        p.previous_points = p.points - player_to_recent_point_map[fantasy_player_id]
-
-    fantasy_season.save()
-    return f"Updated points for {len(players)} players"
-
-
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def fantasy_season(season):
     season = frappe.get_doc("Fantasy Season", season)
@@ -131,17 +109,44 @@ def fantasy_season_list():
 
 
 @frappe.whitelist(methods=["PUT"])
-def usethis():
+def refresh_all_points(force=0):
     fantasy_seasons = frappe.get_list(
         "Fantasy Season",
         filters={"auto_update_points": 1},
-        fields={"name", "update_points_url"},
+        pluck="name",
     )
-    for fs in fantasy_seasons:
-        players = frappe.integrations.utils.make_get_request(fs.update_points_url)[
-            "Data"
-        ]["Value"]["Players"]
-        return update_points(fs.name, players)
+    response_map = {}
+    for fs_id in fantasy_seasons:
+        fantasy_season = frappe.get_doc("Fantasy Season", fs_id)
+        result = fantasy_season.refresh_points(skip_time_check=force)
+        response_map[fs_id] = result
+
+    return response_map
+
+
+def update_points_for_season(season):
+    fantasy_season = frappe.get_doc("Fantasy Season", season)
+
+    players = frappe.integrations.utils.make_get_request(
+        fantasy_season.update_points_url
+    )["Data"]["Value"]["Players"]
+
+    player_to_point_map = {}
+    player_to_recent_point_map = {}
+
+    for p in players:
+        player_to_point_map[p["Id"]] = p["OverallPoints"]
+        player_to_recent_point_map[p["Id"]] = p["GamedayPoints"]
+
+    for p in fantasy_season.player_pool:
+        fantasy_player_id = frappe.get_value(
+            "Fantasy Player", p.player, "fantasy_player_id"
+        )
+        p.points = player_to_point_map[fantasy_player_id]
+        p.previous_points = p.points - player_to_recent_point_map[fantasy_player_id]
+
+    fantasy_season.save()
+    return f"Updated points for {len(players)} players"
 
 
 @frappe.whitelist(methods=["GET"])

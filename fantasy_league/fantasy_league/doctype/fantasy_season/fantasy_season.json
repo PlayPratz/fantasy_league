@@ -19,6 +19,8 @@
   "api_section",
   "auto_update_points",
   "update_points_url",
+  "update_points_gameday",
+  "points_last_updated",
   "section_break_dxjb",
   "player_pool",
   "section_break_lksi",
@@ -151,12 +153,23 @@
    "fieldtype": "Table",
    "label": "Retention Slabs",
    "options": "Retention Slab in Fantasy League"
+  },
+  {
+   "fieldname": "points_last_updated",
+   "fieldtype": "Datetime",
+   "label": "Points Last Updated",
+   "read_only": 1
+  },
+  {
+   "fieldname": "update_points_gameday",
+   "fieldtype": "Int",
+   "label": "Update Points Gameday"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-26 12:22:22.914414",
+ "modified": "2026-03-26 15:46:40.823195",
  "modified_by": "Administrator",
  "module": "Fantasy League",
  "name": "Fantasy Season",

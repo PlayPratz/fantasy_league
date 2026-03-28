@@ -191,7 +191,6 @@ class FantasySeason(Document):
             return 0
 
         url = self.update_points_url + str(self.update_points_gameday)
-
         players = frappe.integrations.utils.make_get_request(url)["Data"]["Value"][
             "Players"
         ]
@@ -212,5 +211,5 @@ class FantasySeason(Document):
 
         self.points_last_updated = datetime.now()
 
-        self.save()
+        self.save(ignore_permissions=True)
         return len(players)

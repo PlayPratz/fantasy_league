@@ -212,4 +212,5 @@ class FantasySeason(Document):
         self.points_last_updated = datetime.now()
 
         self.save(ignore_permissions=True)
+        frappe.db.commit()  # Since a GET request has likely triggered this operation
         return len(players)

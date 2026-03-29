@@ -86,8 +86,7 @@
   {
    "fieldname": "recent_rank_gain",
    "fieldtype": "Int",
-   "label": "Recent Rank Gain",
-   "non_negative": 1
+   "label": "Recent Rank Gain"
   },
   {
    "fieldname": "previous_rank",
@@ -128,7 +127,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-26 14:30:42.776244",
+ "modified": "2026-03-29 20:32:01.877493",
  "modified_by": "Administrator",
  "module": "Fantasy League",
  "name": "Team In Fantasy Season",

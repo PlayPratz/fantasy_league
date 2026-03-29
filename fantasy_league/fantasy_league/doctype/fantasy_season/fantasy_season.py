@@ -122,6 +122,7 @@ class FantasySeason(Document):
             "overseas_limit": self.overseas_limit,
             "best_of": self.best_of,
             "commenced": self.commenced,
+            "points_last_updated": self.points_last_updated,
             "teams": self.all_teams(),
         }
 
@@ -178,22 +179,35 @@ class FantasySeason(Document):
         super().save(*args, **kwargs)  # call the base save method
 
     def refresh_points(self, skip_time_check=False):
-        if not self.update_points_url:
+        if not self.auto_update_points or not self.update_points_url:
             return 0
 
         import frappe.utils as utils
         from datetime import datetime
 
+        points_expiry = frappe.get_single_value("Fantasy Settings", "points_expiry")
+
         if (
             not skip_time_check
-            and utils.add_to_date(self.points_last_updated, minutes=5) > datetime.now()
+            and utils.add_to_date(self.points_last_updated, minutes=points_expiry)
+            > datetime.now()
         ):
             return 0
 
-        url = self.update_points_url + str(self.update_points_gameday)
-        players = frappe.integrations.utils.make_get_request(url)["Data"]["Value"][
-            "Players"
-        ]
+        from frappe.integrations.utils import make_get_request
+
+        if self.tour_fixtures_url:
+            url = self.tour_fixtures_url
+            fixtures = make_get_request(url)["Data"]["Value"]
+            self.update_points_gameday = next(
+                (f["TourGamedayId"] for f in fixtures if f["IsCurrent"] == 1),
+                self.update_points_gameday,
+            )
+
+        url = (
+            self.update_points_url + "?tourgamedayId=" + str(self.update_points_gameday)
+        )
+        players = make_get_request(url)["Data"]["Value"]["Players"]
 
         player_to_point_map = {}
         player_to_recent_point_map = {}

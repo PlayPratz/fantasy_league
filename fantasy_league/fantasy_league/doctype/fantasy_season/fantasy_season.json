@@ -18,9 +18,11 @@
   "players_tab",
   "api_section",
   "auto_update_points",
-  "update_points_url",
-  "update_points_gameday",
   "points_last_updated",
+  "column_break_wwif",
+  "tour_fixtures_url",
+  "update_points_gameday",
+  "update_points_url",
   "section_break_dxjb",
   "player_pool",
   "section_break_lksi",
@@ -161,15 +163,26 @@
    "read_only": 1
   },
   {
+   "fieldname": "column_break_wwif",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tour_fixtures_url",
+   "fieldtype": "Data",
+   "label": "Tour Fixtures URL",
+   "options": "URL"
+  },
+  {
    "fieldname": "update_points_gameday",
    "fieldtype": "Int",
-   "label": "Update Points Gameday"
+   "label": "Update Points Gameday",
+   "non_negative": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-26 15:46:40.823195",
+ "modified": "2026-03-29 14:41:46.457298",
  "modified_by": "Administrator",
  "module": "Fantasy League",
  "name": "Fantasy Season",

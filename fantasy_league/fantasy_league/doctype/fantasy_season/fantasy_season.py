@@ -165,7 +165,7 @@ class FantasySeason(Document):
             t.slots_remaining = self.squad_size - t.players_bought - t.players_retained
             t.purse_remaining = t.purse_total - t.purse_spent
             t.recent_points = t.points - t.previous_points
-            t.recent_rank_gain = t.rank - t.previous_rank
+            t.recent_rank_gain = t.previous_rank - t.rank
 
         team_ranks = rank_number_list(list(t.points for t in self.teams))
         team_previous_ranks = rank_number_list(

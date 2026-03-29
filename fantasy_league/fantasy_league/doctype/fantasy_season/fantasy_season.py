@@ -40,9 +40,9 @@ class FantasySeason(Document):
                     replacement_players.append(
                         self.fantasy_player_wo_id(r).update(player_points)
                     )
-                fp["recent_points"] = fp["points"] - fp["previous_points"]
                 fp["replacements"] = replacement_players
 
+            fp["recent_points"] = fp["points"] - fp["previous_points"]
             players.append(fp)
 
         # Calculate ranks
@@ -222,7 +222,6 @@ class FantasySeason(Document):
             )
             p.points = player_to_point_map[fantasy_player_id]
             p.previous_points = p.points - player_to_recent_point_map[fantasy_player_id]
-            p.recent_points = p.points - p.previous_points
 
         self.points_last_updated = datetime.now()
 

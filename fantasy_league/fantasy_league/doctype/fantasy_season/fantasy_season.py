@@ -222,6 +222,7 @@ class FantasySeason(Document):
             )
             p.points = player_to_point_map[fantasy_player_id]
             p.previous_points = p.points - player_to_recent_point_map[fantasy_player_id]
+            p.recent_poitns = p.points - p.previous_points
 
         self.points_last_updated = datetime.now()
 

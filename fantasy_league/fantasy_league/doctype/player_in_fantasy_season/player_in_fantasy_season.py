@@ -6,7 +6,4 @@ from frappe.model.document import Document
 
 
 class PlayerinFantasySeason(Document):
-
-    @property
-    def recent_points(self):
-        return self.points - self.previous_points
+    pass

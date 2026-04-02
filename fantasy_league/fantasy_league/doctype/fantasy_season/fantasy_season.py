@@ -126,11 +126,14 @@ class FantasySeason(Document):
             "teams": self.all_teams(),
         }
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)  # call the base save method to refresh values
+    def before_save(self):
+        # super().save(*args, **kwargs)  # call the base save method to refresh values
+
+        print("Bruh ", len(self.teams))
+        print("Bruh ", len(self.get("teams")))
 
         # Update purses and points
-        for t in self.teams:
+        for t in self.get("teams"):
             players = self.team_players(t.team)
 
             t.points = self.best_of_points(players)
@@ -163,20 +166,22 @@ class FantasySeason(Document):
                 )
 
             t.slots_remaining = self.squad_size - t.players_bought - t.players_retained
+
+            print(t.purse_total, t.purse_spent)
             t.purse_remaining = t.purse_total - t.purse_spent
             t.recent_points = t.points - t.previous_points
-            t.recent_rank_gain = t.previous_rank - t.rank
 
         team_ranks = rank_number_list(list(t.points for t in self.teams))
         team_previous_ranks = rank_number_list(
             list(t.previous_points for t in self.teams)
         )
 
-        for index, t in enumerate(self.teams):
+        for index, t in enumerate(self.get("teams")):
             t.rank = team_ranks[index]
             t.previous_rank = team_previous_ranks[index]
+            t.recent_rank_gain = t.previous_rank - t.rank
 
-        super().save(*args, **kwargs)  # call the base save method
+        # super().save(*args, **kwargs)  # call the base save method
 
     def refresh_points(self, skip_time_check=False):
         if not self.auto_update_points or not self.update_points_url:

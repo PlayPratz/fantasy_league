@@ -46,8 +46,12 @@ class FantasySeason(Document):
             players.append(fp)
 
         # Calculate ranks
-        ranks = rank_number_list(list(p.points for p in players))
-        previous_ranks = rank_number_list(list(p.previous_points for p in players))
+        ranks = rank_number_list(
+            list(p.points for p in players), use_order_if_equal=True
+        )
+        previous_ranks = rank_number_list(
+            list(p.previous_points for p in players), use_order_if_equal=True
+        )
         price_ranks = rank_number_list(list(p.price for p in players))
         for index, player in enumerate(players):
             player.rank = ranks[index]

@@ -47,10 +47,10 @@ class FantasySeason(Document):
 
         # Calculate ranks
         ranks = rank_number_list(
-            list(p.points for p in players), use_order_if_equal=True
+            list(p.points for p in players), force_unique_ranks=True
         )
         previous_ranks = rank_number_list(
-            list(p.previous_points for p in players), use_order_if_equal=True
+            list(p.previous_points for p in players), force_unique_ranks=True
         )
         price_ranks = rank_number_list(list(p.price for p in players))
         for index, player in enumerate(players):
@@ -130,11 +130,8 @@ class FantasySeason(Document):
             "teams": self.all_teams(),
         }
 
-    def before_save(self):
-        # super().save(*args, **kwargs)  # call the base save method to refresh values
-
-        print("Bruh ", len(self.teams))
-        print("Bruh ", len(self.get("teams")))
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)  # call the base save method to refresh values
 
         # Update purses and points
         for t in self.get("teams"):
@@ -170,8 +167,6 @@ class FantasySeason(Document):
                 )
 
             t.slots_remaining = self.squad_size - t.players_bought - t.players_retained
-
-            print(t.purse_total, t.purse_spent)
             t.purse_remaining = t.purse_total - t.purse_spent
             t.recent_points = t.points - t.previous_points
 
@@ -183,9 +178,9 @@ class FantasySeason(Document):
         for index, t in enumerate(self.get("teams")):
             t.rank = team_ranks[index]
             t.previous_rank = team_previous_ranks[index]
-            t.recent_rank_gain = t.previous_rank - t.rank
+            t.recent_rank_gain = team_previous_ranks[index] - team_ranks[index]
 
-        # super().save(*args, **kwargs)  # call the base save method
+        super().save(*args, **kwargs)  # call the base save method
 
     def refresh_points(self, skip_time_check=False):
         if not self.auto_update_points or not self.update_points_url:
